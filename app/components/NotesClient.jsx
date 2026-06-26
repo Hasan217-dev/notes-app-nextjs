@@ -1,8 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 
-const NotesClient = () => {
+const NotesClient = ({initialNotes}) => {
+
+   const [notes , setNotes] = useState(initialNotes)
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,76 +27,119 @@ const NotesClient = () => {
       });
 
       const result = await response.json();
-      console.log("Note created:", result);
+      if(result.success){
+        setNotes(prev => [result.data, ...prev]);
+        toast.success("Notes Created Sucessfully")
+        setTitle("");
+        setContent("");
+        setSuccess(true)
+      }
 
-      setTitle("");
-      setContent("");
-      setSuccess(true);
     } catch (error) {
       console.error("Error creating note:", error);
+      toast.error("Failed to created notes")
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen  from-gray-100 to-gray-200 flex items-center justify-center p-6">
-      
+return (
+  <div className="min-h-screen  from-gray-100 to-gray-200">
+
+    <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 className="text-2xl font-bold text-gray-800">📝 Notes</h1>
+      <span className="text-sm text-gray-500">
+        {notes.length} notes
+      </span>
+    </div>
+
+    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 px-6 pb-6">
+
       <form
         onSubmit={createNote}
-        className="w-full max-w-lg bg-white p-8 rounded-2xl shadow-xl space-y-6 border border-gray-100"
+        className="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-xl border border-white/40 space-y-5"
       >
-        <h1 className="text-3xl font-extrabold text-center text-gray-800">
-          📝 Notes App
-        </h1>
-
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-700">
-            Create New Note
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Create Note
           </h2>
           <p className="text-sm text-gray-500">
-            Capture your thoughts instantly
+            Capture your ideas quickly
           </p>
         </div>
 
-        <div className="space-y-4">
-          <input
-            type="text"
-            value={title}
-            placeholder="Note Title"
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-          />
+        <input
+          type="text"
+          value={title}
+          placeholder="Title..."
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full p-3 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+        />
 
-          <textarea
-            placeholder="Note Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-            rows={5}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-          />
-        </div>
+        <textarea
+          value={content}
+          placeholder="Write your note..."
+          onChange={(e) => setContent(e.target.value)}
+          rows={5}
+          className="w-full p-3 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+        />
 
-        {success && (
-          <p className="text-green-600 text-sm text-center">
-            ✅ Note created successfully!
-          </p>
-        )}
+      
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium 
-                     hover:bg-blue-700 active:scale-[0.98] transition 
-                     disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium 
+          hover:bg-blue-700 transition shadow-md hover:shadow-lg"
         >
-          {loading ? "Creating..." : "Create Note"}
+          {loading ? "Adding..." : "Add Note"}
         </button>
       </form>
+
+      <div className="flex flex-col h-[75vh]">
+        <h2 className="text-lg font-semibold text-gray-700 mb-3">
+          Your Notes
+        </h2>
+
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+          {notes.length === 0 ? (
+            <div className="bg-white p-6 rounded-xl shadow text-center text-gray-500">
+              No notes yet 💤
+            </div>
+          ) : (
+            notes.map((note) => (
+              <div
+                key={note._id}
+                className="group bg-white p-4 rounded-xl shadow-sm hover:shadow-lg transition-all border"
+              >
+                <div className="flex justify-between items-start">
+                  <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition">
+                    {note.title}
+                  </h3>
+
+                  <div className="flex gap-2 opacity-70 group-hover:opacity-100 transition">
+                    <button className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100">
+                      Edit
+                    </button>
+                    <button className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-gray-600 mt-2 text-sm leading-relaxed line-clamp-3">
+                  {note.content}
+                </p>
+              </div>
+            ))
+          )}
+
+        </div>
+      </div>
+
     </div>
-  );
+  </div>
+);
 };
 
 export default NotesClient;
